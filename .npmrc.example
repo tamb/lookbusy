@@ -1,0 +1,17 @@
+# .npmrc.example
+# Copy this file to .npmrc and fill in your values
+# DO NOT commit your actual .npmrc file with real tokens!
+
+# npm registry (default, usually don't need to change)
+registry=https://registry.npmjs.org/
+
+# Authentication token for publishing
+# Generate at: https://www.npmjs.com/settings/YOUR_USERNAME/tokens
+# Select "Automation" or "Publish" token type
+//registry.npmjs.org/:_authToken=npm_YOUR_TOKEN_HERE
+
+# Optional: Set access level for scoped packages
+# access=public
+
+# Optional: Enable 2FA for publishing (recommended)
+# This is set in your npm account settings, not here
