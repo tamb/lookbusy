@@ -680,6 +680,12 @@
         setTimeout(() => addLog('restart'), i * 800);
       });
       
+      // Reset timing state BEFORE setting currentStageIndex to prevent
+      // updatePipeline from processing with stale timing data
+      stageStartTime = Date.now() + 2500; // Account for the delay before stage starts
+      stageDuration = getRandomDuration(stages[0].minDuration, stages[0].maxDuration);
+      stageElapsed = 0;
+      
       // Start first stage after a brief delay
       pipelineComplete = false;
       currentStageIndex = 0;

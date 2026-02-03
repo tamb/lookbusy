@@ -1,6 +1,6 @@
-# Contributing to lookbusy
+# Contributing to ocupado
 
-Thank you for your interest in contributing to lookbusy! This document provides guidelines and instructions for contributing.
+Thank you for your interest in contributing to ocupado! This document provides guidelines and instructions for contributing.
 
 ## Table of Contents
 
@@ -23,12 +23,12 @@ Please be respectful and constructive in all interactions. We're all here to mak
 1. Fork the repository on GitHub
 2. Clone your fork locally:
    ```bash
-   git clone https://github.com/YOUR_USERNAME/lookbusy.git
-   cd lookbusy
+   git clone https://github.com/YOUR_USERNAME/ocupado.git
+   cd ocupado
    ```
 3. Add the upstream remote:
    ```bash
-   git remote add upstream https://github.com/ORIGINAL_OWNER/lookbusy.git
+   git remote add upstream https://github.com/ORIGINAL_OWNER/ocupado.git
    ```
 
 ## Development Setup
@@ -68,9 +68,9 @@ npx playwright install chromium
 ## Project Structure
 
 ```
-lookbusy/
+ocupado/
 ├── bin/
-│   └── lookbusy.js           # CLI entry point
+│   └── ocupado.js           # CLI entry point
 ├── src/
 │   ├── cli.ts                # CLI argument parsing
 │   ├── index.ts              # Main orchestrator
@@ -191,16 +191,16 @@ Before submitting a PR, test your changes as if they were installed from npm.
 ### Method 1: npm link (Recommended)
 
 ```bash
-# In the lookbusy directory
+# In the ocupado directory
 npm run build
 npm link
 
 # Now you can run it from anywhere
-lookbusy
-lookbusy --options
+ocupado
+ocupado --options
 
 # When done, unlink
-npm unlink -g lookbusy
+npm unlink -g ocupado
 ```
 
 ### Method 2: npm pack
@@ -210,29 +210,29 @@ npm unlink -g lookbusy
 npm run build
 npm pack
 
-# This creates lookbusy-1.0.0.tgz
+# This creates ocupado-1.0.0.tgz
 # Install it in another directory
 cd /tmp
-mkdir test-lookbusy
-cd test-lookbusy
+mkdir test-ocupado
+cd test-ocupado
 npm init -y
-npm install /path/to/lookbusy/lookbusy-1.0.0.tgz
+npm install /path/to/ocupado/ocupado-1.0.0.tgz
 
 # Run it
-npx lookbusy
+npx ocupado
 ```
 
 ### Method 3: Local Install
 
 ```bash
 # In another directory
-mkdir /tmp/test-lookbusy
-cd /tmp/test-lookbusy
+mkdir /tmp/test-ocupado
+cd /tmp/test-ocupado
 npm init -y
-npm install /path/to/lookbusy
+npm install /path/to/ocupado
 
 # Run it
-npx lookbusy
+npx ocupado
 ```
 
 ### Testing Checklist
@@ -243,8 +243,8 @@ Before submitting, verify:
 - [ ] `npm run test:run` passes all tests
 - [ ] `npm run check` reports no linting or formatting issues
 - [ ] `npm run typecheck` reports no type errors
-- [ ] The CLI runs correctly: `npx lookbusy`
-- [ ] The options flag works: `npx lookbusy --options`
+- [ ] The CLI runs correctly: `npx ocupado`
+- [ ] The options flag works: `npx ocupado --options`
 - [ ] Ctrl+C cleanly exits and cleans up all processes
 - [ ] Each feature works individually (test via `--options`)
 

@@ -1,4 +1,4 @@
-# lookbusy
+# ocupado
 
 Make your computer look busy with fake terminal commands, browser dashboards, and installation windows.
 
@@ -14,10 +14,10 @@ Make your computer look busy with fake terminal commands, browser dashboards, an
 
 ## Quick Start
 
-The fastest way to run lookbusy is with npx (no installation required):
+The fastest way to run ocupado is with npx (no installation required):
 
 ```bash
-npx lookbusy
+npx ocupado
 ```
 
 ## Installation
@@ -25,25 +25,25 @@ npx lookbusy
 ### Global Installation (Recommended)
 
 ```bash
-npm install -g lookbusy
+npm install -g ocupado
 ```
 
 Then run from anywhere:
 
 ```bash
-lookbusy
+ocupado
 ```
 
 ### Local Installation
 
 ```bash
-npm install lookbusy
+npm install ocupado
 ```
 
 Then run via npx or npm scripts:
 
 ```bash
-npx lookbusy
+npx ocupado
 ```
 
 ## Usage
@@ -53,7 +53,7 @@ npx lookbusy
 Run with all features enabled (terminal output, browser, native window, spawned terminal, stay awake):
 
 ```bash
-lookbusy
+ocupado
 ```
 
 ### Interactive Mode - Select Features
@@ -61,7 +61,7 @@ lookbusy
 Use the `--options` flag to interactively select which features to enable:
 
 ```bash
-lookbusy --options
+ocupado --options
 ```
 
 This displays a checklist:
@@ -79,22 +79,22 @@ Use arrow keys to navigate, space to toggle, and enter to confirm.
 
 ### Stopping
 
-Press `Ctrl+C` to stop lookbusy. All spawned processes and windows will be cleaned up automatically.
+Press `Ctrl+C` to stop ocupado. All spawned processes and windows will be cleaned up automatically.
 
 ## Examples
 
 ```bash
 # Run everything (default)
-lookbusy
+ocupado
 
 # Select specific features interactively
-lookbusy --options
+ocupado --options
 
 # Run via npx without installing
-npx lookbusy
+npx ocupado
 
 # Run via npx with options
-npx lookbusy --options
+npx ocupado --options
 ```
 
 ## Platform Requirements
@@ -162,8 +162,8 @@ We welcome contributions! See [CONTRIBUTING.md](./CONTRIBUTING.md) for guideline
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/lookbusy.git
-cd lookbusy
+git clone https://github.com/yourusername/ocupado.git
+cd ocupado
 
 # Install dependencies
 npm install

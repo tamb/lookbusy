@@ -4,26 +4,33 @@ import { launchNativeWindow } from './native/window.js';
 import { runTerminalOutput } from './terminal/output.js';
 import { spawnTerminal } from './terminal/spawner.js';
 import type { CleanupFn, FeatureResult, LookbusyOptions } from './types.js';
-import { isRunningAsRoot } from './utils/platform.js';
+import { getPlatform, hasWmctrl, isRunningAsRoot } from './utils/platform.js';
 import { preventSleep } from './utils/stay-awake.js';
 
 const cleanupFunctions: CleanupFn[] = [];
 let isShuttingDown = false;
 
 /**
- * Run lookbusy with the specified options
+ * Run ocupado with the specified options
  */
 export async function run(options: LookbusyOptions): Promise<void> {
   // Security check: warn if running as root
   if (isRunningAsRoot()) {
     console.log(chalk.yellow('\n⚠️  Warning: Running as root is not recommended.'));
-    console.log(chalk.yellow('   lookbusy does not require elevated privileges.\n'));
+    console.log(chalk.yellow('   ocupado does not require elevated privileges.\n'));
+  }
+
+  // Check for wmctrl on Linux when using grid layout
+  if (options.gridLayout && getPlatform() === 'linux' && !hasWmctrl()) {
+    console.log(chalk.yellow('\n⚠️  Warning: wmctrl is not installed.'));
+    console.log(chalk.yellow('   Window positioning for --grid layout requires wmctrl.'));
+    console.log(chalk.yellow('   Install it with: sudo apt install wmctrl\n'));
   }
 
   // Register cleanup handlers first
   registerCleanupHandlers();
 
-  console.log(chalk.bold.cyan('\n🚀 Starting lookbusy...\n'));
+  console.log(chalk.bold.cyan('\n🚀 Starting ocupado...\n'));
 
   const features: FeatureResult[] = [];
 
@@ -39,26 +46,26 @@ export async function run(options: LookbusyOptions): Promise<void> {
     // Launch browser dashboard
     if (options.browserDashboard) {
       console.log(chalk.dim('  Launching browser...'));
-      const result = await launchBrowser();
+      const result = await launchBrowser(options.gridLayout);
       features.push(result);
       cleanupFunctions.push(result.cleanup);
       console.log(`${chalk.green('✓')} Browser dashboard launched`);
     }
 
-    // Launch native window
+    // Spawn additional terminals (spawn before native window so native appears on top)
+    if (options.spawnTerminal) {
+      const result = await spawnTerminal(options.gridLayout);
+      features.push(result);
+      cleanupFunctions.push(result.cleanup);
+      console.log(`${chalk.green('✓')} Additional terminals spawned`);
+    }
+
+    // Launch native window (last so it appears on top)
     if (options.nativeWindow) {
       const result = await launchNativeWindow();
       features.push(result);
       cleanupFunctions.push(result.cleanup);
       console.log(`${chalk.green('✓')} Native installer window launched`);
-    }
-
-    // Spawn additional terminal
-    if (options.spawnTerminal) {
-      const result = await spawnTerminal();
-      features.push(result);
-      cleanupFunctions.push(result.cleanup);
-      console.log(`${chalk.green('✓')} Additional terminal spawned`);
     }
 
     // Start terminal output (this runs in the main terminal and blocks)
@@ -75,7 +82,7 @@ export async function run(options: LookbusyOptions): Promise<void> {
     }
   } catch (error) {
     if (!isShuttingDown) {
-      console.error(chalk.red('Error running lookbusy:'), error);
+      console.error(chalk.red('Error running ocupado:'), error);
       await shutdown();
       process.exit(1);
     }

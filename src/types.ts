@@ -1,5 +1,5 @@
 /**
- * Configuration options for lookbusy features
+ * Configuration options for ocupado features
  */
 export interface LookbusyOptions {
   /** Enable fake terminal output with spinners and progress bars */
@@ -12,6 +12,8 @@ export interface LookbusyOptions {
   nativeWindow: boolean;
   /** Prevent the screen from sleeping */
   stayAwake: boolean;
+  /** Use grid layout (browser left half, terminals stacked right) instead of layered fullscreen */
+  gridLayout: boolean;
 }
 
 /**
@@ -86,6 +88,26 @@ export interface TerminalConfig {
   command: string;
   /** Arguments to pass (use {cmd} as placeholder for the command to run) */
   args: string[];
+  /** Optional geometry argument format (use {geom} as placeholder) */
+  geometryArg?: string;
+}
+
+/**
+ * Window geometry for positioning
+ */
+export interface WindowGeometry {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+/**
+ * Screen dimensions
+ */
+export interface ScreenDimensions {
+  width: number;
+  height: number;
 }
 
 /**
@@ -148,6 +170,12 @@ export const OPTION_DEFINITIONS: OptionDefinition[] = [
     description: 'Prevent the screen from sleeping',
     defaultEnabled: true,
   },
+  {
+    key: 'gridLayout',
+    label: 'Grid layout',
+    description: 'Arrange windows in a grid instead of layered fullscreen',
+    defaultEnabled: false,
+  },
 ];
 
 /**
@@ -160,5 +188,6 @@ export function createDefaultOptions(): LookbusyOptions {
     browserDashboard: true,
     nativeWindow: true,
     stayAwake: true,
+    gridLayout: false,
   };
 }

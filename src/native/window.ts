@@ -3,7 +3,13 @@ import { chmodSync, mkdtempSync, rmdirSync, unlinkSync, writeFileSync } from 'no
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { CleanupFn, FeatureResult } from '../types.js';
-import { commandExists, getPlatform } from '../utils/platform.js';
+import {
+  commandExists,
+  getPlatform,
+  getScreenDimensions,
+  hasWmctrl,
+  raiseWindow,
+} from '../utils/platform.js';
 
 // Track temp directories for cleanup
 const tempDirs: string[] = [];
@@ -153,251 +159,287 @@ const installFiles = [
 ];
 
 /**
- * Installation phases for more realistic busy appearance
- */
-const installPhases = [
-  { name: 'Resolving dependencies', duration: 8 },
-  { name: 'Downloading packages', duration: 15 },
-  { name: 'Installing packages', duration: 25 },
-  { name: 'Building native modules', duration: 12 },
-  { name: 'Linking dependencies', duration: 8 },
-  { name: 'Running postinstall scripts', duration: 10 },
-  { name: 'Optimizing bundle', duration: 12 },
-  { name: 'Generating types', duration: 8 },
-  { name: 'Running tests', duration: 15 },
-  { name: 'Building for production', duration: 20 },
-  { name: 'Compressing assets', duration: 8 },
-  { name: 'Finalizing deployment', duration: 10 },
-];
-
-/**
  * Generate a shell script for Linux that shows a fake installer progress
- * Runs indefinitely through multiple phases with varied timing
+ * Single window with sequential progress phases, cancel button available
  */
 function generateLinuxScript(): string {
-  // Generate file installation commands with varied timing (0.3-0.8s per file)
-  const fileCommands = installFiles
-    .map((f, i) => {
-      const delay = (0.3 + (i % 5) * 0.1).toFixed(1);
-      const progress = Math.floor((i / installFiles.length) * 60) + 10; // 10-70% range
-      return `echo "${progress}"\necho "# Installing: ${f}"\nsleep ${delay}`;
-    })
-    .join('\n');
-
-  // Generate phase commands
-  const phaseScript = installPhases
-    .map((phase, i) => {
-      const baseProgress = Math.floor((i / installPhases.length) * 100);
-      return `
-    echo "${baseProgress}"
-    echo "# ${phase.name}..."
-    for j in $(seq 1 ${phase.duration}); do
-      progress=$((${baseProgress} + j * ${Math.floor(100 / installPhases.length / phase.duration)}))
-      echo "$progress"
-      sleep 0.5
-    done`;
-    })
-    .join('\n');
+  // Get screen dimensions for centering
+  const screen = getScreenDimensions();
+  const centerX = Math.floor((screen.width - 600) / 2);
 
   return `#!/bin/bash
 
-run_installation() {
-  (
-    echo "0"
-    echo "# Preparing installation environment..."
-    sleep 2
-    
-    echo "2"
-    echo "# Checking system requirements..."
-    sleep 1.5
-    
-    echo "5"
-    echo "# Resolving dependency tree..."
-    sleep 2
-    
-    echo "8"
-    echo "# Fetching package metadata..."
-    sleep 1.5
-    
-    ${fileCommands}
-    
-    echo "75"
-    echo "# Compiling TypeScript..."
-    sleep 3
-    
-    echo "80"
-    echo "# Building native modules..."
-    sleep 2.5
-    
-    echo "85"
-    echo "# Running postinstall hooks..."
-    sleep 2
-    
-    echo "90"
-    echo "# Optimizing bundles..."
-    sleep 2
-    
-    echo "95"
-    echo "# Generating sourcemaps..."
-    sleep 1.5
-    
-    echo "98"
-    echo "# Cleaning up..."
-    sleep 1
-    
-    echo "100"
-    echo "# Phase complete!"
-    sleep 1
-  ) | zenity --progress \\
-    --title="Package Installation - Phase $1" \\
-    --text="Starting installation..." \\
-    --percentage=0 \\
-    --no-cancel \\
-    --width=550 \\
-    --height=150 2>/dev/null
-}
+# Screen center coordinates for window positioning
+CENTER_X=${centerX}
 
-run_config_phase() {
-  (
-    ${phaseScript}
-    
-    echo "100"
-    echo "# Configuration complete!"
-    sleep 1
-  ) | zenity --progress \\
-    --title="Build Configuration - Cycle $1" \\
-    --text="Configuring build..." \\
-    --percentage=0 \\
-    --no-cancel \\
-    --width=550 \\
-    --height=150 2>/dev/null
-}
+# Trap to handle cancel button
+trap "exit 0" SIGTERM SIGINT
 
-run_pulsate_phase() {
-  local titles=("Post-Install Scripts" "Dependency Verification" "Cache Optimization" "Index Rebuilding" "Type Checking" "Lint Analysis")
-  local texts=("Running post-install scripts..." "Verifying dependency integrity..." "Optimizing module cache..." "Rebuilding search indices..." "Running type checker..." "Analyzing code quality...")
-  local idx=$((($1 - 1) % 6))
+run_multi_phase() {
+  local cycle=$1
   
-  zenity --progress \\
-    --title="\${titles[$idx]}" \\
-    --text="\${texts[$idx]}" \\
-    --pulsate \\
-    --no-cancel \\
-    --width=500 \\
-    --height=150 \\
-    --timeout=20 2>/dev/null
+  (
+    # Phase 1: Resolving dependencies (0-15%)
+    echo "0"
+    echo "# [1/6] Resolving dependencies..."
+    for i in $(seq 1 15); do
+      echo "$i"
+      sleep 0.3
+    done
+    
+    # Phase 2: Downloading packages (15-35%)
+    echo "# [2/6] Downloading packages..."
+    for i in $(seq 15 35); do
+      echo "$i"
+      if [ $((i % 3)) -eq 0 ]; then
+        echo "# [2/6] Downloading: package-$((i * 7))@1.$((i % 10)).0"
+      fi
+      sleep 0.25
+    done
+    
+    # Phase 3: Installing packages (35-60%)
+    echo "# [3/6] Installing packages..."
+    for i in $(seq 35 60); do
+      echo "$i"
+      if [ $((i % 2)) -eq 0 ]; then
+        echo "# [3/6] Installing: node_modules/dep-$((i * 3))/index.js"
+      fi
+      sleep 0.2
+    done
+    
+    # Phase 4: Building native modules (60-75%)
+    echo "# [4/6] Building native modules..."
+    for i in $(seq 60 75); do
+      echo "$i"
+      sleep 0.4
+    done
+    
+    # Phase 5: Running postinstall (75-90%)
+    echo "# [5/6] Running postinstall scripts..."
+    for i in $(seq 75 90); do
+      echo "$i"
+      sleep 0.3
+    done
+    
+    # Phase 6: Finalizing (90-100%)
+    echo "# [6/6] Finalizing installation..."
+    for i in $(seq 90 100); do
+      echo "$i"
+      sleep 0.2
+    done
+    
+    echo "100"
+    echo "# Cycle $cycle complete! Starting next cycle..."
+    sleep 2
+  ) | zenity --progress \\
+    --title="Package Installation - Build Cycle $cycle" \\
+    --text="Initializing..." \\
+    --percentage=0 \\
+    --auto-close \\
+    --width=600 \\
+    --height=120 2>/dev/null
+  
+  return $?
 }
 
-# Main loop - cycles through different installation phases indefinitely
+# Position window after first launch
+position_window() {
+  sleep 0.5
+  if command -v wmctrl &> /dev/null; then
+    wmctrl -r "Package Installation" -e 0,\${CENTER_X},100,-1,-1 2>/dev/null || true
+  fi
+}
+
+# Main loop - cycles through installation phases indefinitely
 cycle=1
 while true; do
-  run_installation $cycle
-  sleep 0.5
-  run_config_phase $cycle
-  sleep 0.5
-  run_pulsate_phase $cycle
-  sleep 0.5
+  # Start positioning in background for first cycle
+  if [ $cycle -eq 1 ]; then
+    position_window &
+  fi
+  
+  run_multi_phase $cycle
+  exit_code=$?
+  
+  # If user clicked cancel (exit code 1), exit the script
+  if [ $exit_code -ne 0 ]; then
+    exit 0
+  fi
+  
   cycle=$((cycle + 1))
+  sleep 1
 done
 `;
 }
 
 /**
  * Generate a shell script for Linux using yad (alternative to zenity)
+ * Uses yad's multi-progress feature for a better UI
  */
 function generateLinuxYadScript(): string {
-  const fileCommands = installFiles
-    .map((f, i) => {
-      const delay = (0.3 + (i % 5) * 0.1).toFixed(1);
-      const progress = Math.floor((i / installFiles.length) * 80) + 5;
-      return `echo "${progress}"\necho "# Installing: ${f}"\nsleep ${delay}`;
-    })
-    .join('\n');
+  // Get screen dimensions for centering
+  const screen = getScreenDimensions();
+  const centerX = Math.floor((screen.width - 600) / 2);
 
   return `#!/bin/bash
 
-run_yad_installation() {
+# Center position for yad windows
+CENTER_X=${centerX}
+
+# Trap to handle cancel button
+trap "exit 0" SIGTERM SIGINT
+
+run_multi_progress() {
+  local cycle=$1
+  
   (
-    echo "0"
-    echo "# Preparing installation..."
+    # Phase 1: Resolving dependencies
+    for i in $(seq 0 5 100); do
+      echo "1:$i"
+      echo "1:# Resolving dependencies..."
+      sleep 0.15
+    done
+    
+    # Phase 2: Downloading packages  
+    for i in $(seq 0 3 100); do
+      echo "2:$i"
+      echo "2:# Downloading package $((i * 2 + cycle))..."
+      sleep 0.1
+    done
+    
+    # Phase 3: Installing
+    for i in $(seq 0 2 100); do
+      echo "3:$i"
+      echo "3:# Installing node_modules/pkg-$i..."
+      sleep 0.08
+    done
+    
+    # Phase 4: Building
+    for i in $(seq 0 4 100); do
+      echo "4:$i"
+      echo "4:# Compiling module $i..."
+      sleep 0.12
+    done
+    
+    # Phase 5: Optimizing
+    for i in $(seq 0 5 100); do
+      echo "5:$i"
+      echo "5:# Optimizing bundle..."
+      sleep 0.1
+    done
+    
+    # Phase 6: Finalizing
+    for i in $(seq 0 10 100); do
+      echo "6:$i"
+      echo "6:# Finalizing..."
+      sleep 0.15
+    done
+    
     sleep 2
-    
-    echo "3"
-    echo "# Resolving dependencies..."
-    sleep 1.5
-    
-    ${fileCommands}
-    
-    echo "88"
-    echo "# Compiling modules..."
-    sleep 2
-    
-    echo "94"
-    echo "# Running post-install..."
-    sleep 1.5
-    
-    echo "100"
-    echo "# Complete!"
+  ) | yad --multi-progress \\
+    --title="Package Installation - Build Cycle $cycle" \\
+    --geometry=600x350+\${CENTER_X}+100 \\
+    --on-top \\
+    --bar="Dependencies:NORM" \\
+    --bar="Download:NORM" \\
+    --bar="Install:NORM" \\
+    --bar="Build:NORM" \\
+    --bar="Optimize:NORM" \\
+    --bar="Finalize:NORM" \\
+    --button="Cancel:1" \\
+    --auto-close 2>/dev/null
+  
+  return $?
+}
+
+# Fallback to single progress if multi-progress fails
+run_single_progress() {
+  local cycle=$1
+  
+  (
+    for phase in "Resolving dependencies" "Downloading packages" "Installing packages" "Building modules" "Optimizing" "Finalizing"; do
+      for i in $(seq 0 5 100); do
+        echo "$i"
+        echo "# $phase..."
+        sleep 0.1
+      done
+    done
     sleep 1
   ) | yad --progress \\
-    --title="Package Installation - Phase $1" \\
-    --text="Starting installation..." \\
-    --percentage=0 \\
-    --width=500 \\
-    --height=120 \\
-    --no-buttons 2>/dev/null
-}
-
-run_yad_pulsate() {
-  local titles=("Post-Install Scripts" "Dependency Check" "Cache Optimization" "Type Checking")
-  local texts=("Running post-install scripts..." "Verifying dependencies..." "Optimizing cache..." "Running type checker...")
-  local idx=$((($1 - 1) % 4))
+    --title="Package Installation - Cycle $cycle" \\
+    --text="Initializing..." \\
+    --geometry=600x120+\${CENTER_X}+100 \\
+    --on-top \\
+    --button="Cancel:1" \\
+    --auto-close 2>/dev/null
   
-  yad --progress \\
-    --title="\${titles[$idx]}" \\
-    --text="\${texts[$idx]}" \\
-    --pulsate \\
-    --width=450 \\
-    --height=100 \\
-    --no-buttons \\
-    --timeout=25 2>/dev/null
+  return $?
 }
 
+# Main loop
 cycle=1
 while true; do
-  run_yad_installation $cycle
-  sleep 0.5
-  run_yad_pulsate $cycle
-  sleep 0.5
+  # Try multi-progress first, fall back to single
+  run_multi_progress $cycle
+  exit_code=$?
+  
+  # If yad multi-progress not supported, try single progress
+  if [ $exit_code -eq 252 ]; then
+    run_single_progress $cycle
+    exit_code=$?
+  fi
+  
+  # If user clicked cancel, exit
+  if [ $exit_code -ne 0 ]; then
+    exit 0
+  fi
+  
   cycle=$((cycle + 1))
+  sleep 1
 done
 `;
 }
 
 /**
  * Generate AppleScript for macOS native progress dialog
- * Shows rotating messages for a busier appearance
+ * Shows rotating messages for a busier appearance, with Cancel button
  */
 function generateMacScript(): string {
   return `
-set phaseMessages to {"Resolving dependency tree...", "Downloading packages from registry...", "Installing node_modules...", "Building native modules...", "Linking dependencies...", "Running postinstall scripts...", "Compiling TypeScript...", "Optimizing bundle size...", "Generating type definitions...", "Running test suite...", "Building for production...", "Compressing assets...", "Verifying checksums...", "Updating lockfile...", "Cleaning cache..."}
+set phaseMessages to {"[1/6] Resolving dependency tree...", "[2/6] Downloading packages from registry...", "[3/6] Installing node_modules...", "[4/6] Building native modules...", "[5/6] Running postinstall scripts...", "[6/6] Optimizing bundle..."}
 
-set detailMessages to {"This may take several minutes", "Processing 847 packages", "Compiling 234 modules", "Analyzing 156 dependencies", "Running 89 scripts", "Checking 1,247 types", "Optimizing 67 chunks"}
+set detailMessages to {"Processing 847 packages", "Compiling 234 modules", "Analyzing 156 dependencies", "Running 89 scripts", "Checking 1,247 types", "Optimizing 67 chunks"}
 
 set phaseIndex to 1
 set detailIndex to 1
+set cycleCount to 1
 
 tell application "System Events"
   repeat
     set currentPhase to item phaseIndex of phaseMessages
     set currentDetail to item detailIndex of detailMessages
+    set progressText to "Cycle " & cycleCount & " - " & currentPhase & return & return & currentDetail
     
-    display dialog currentPhase & return & return & currentDetail buttons {"Working..."} giving up after 8 with title "Package Installation" with icon note
+    try
+      display dialog progressText buttons {"Cancel", "Installing..."} default button "Installing..." giving up after 5 with title "Package Installation" with icon note
+      set dialogResult to result
+      
+      if button returned of dialogResult is "Cancel" then
+        exit repeat
+      end if
+    on error
+      -- User closed the dialog
+      exit repeat
+    end try
     
     set phaseIndex to (phaseIndex mod (count of phaseMessages)) + 1
     set detailIndex to (detailIndex mod (count of detailMessages)) + 1
     
-    delay 0.5
+    if phaseIndex = 1 then
+      set cycleCount to cycleCount + 1
+    end if
+    
+    delay 0.3
   end repeat
 end tell
 `;
@@ -477,11 +519,19 @@ $form.Controls.Add($logBox)
 
 $statsLabel = New-Object System.Windows.Forms.Label
 $statsLabel.Location = New-Object System.Drawing.Point(20, 208)
-$statsLabel.Size = New-Object System.Drawing.Size(520, 20)
+$statsLabel.Size = New-Object System.Drawing.Size(400, 20)
 $statsLabel.Text = "Packages: 0 | Elapsed: 0:00"
 $statsLabel.Font = New-Object System.Drawing.Font("Segoe UI", 8)
 $statsLabel.ForeColor = [System.Drawing.Color]::Gray
 $form.Controls.Add($statsLabel)
+
+$cancelButton = New-Object System.Windows.Forms.Button
+$cancelButton.Location = New-Object System.Drawing.Point(450, 203)
+$cancelButton.Size = New-Object System.Drawing.Size(90, 28)
+$cancelButton.Text = "Cancel"
+$cancelButton.Font = New-Object System.Drawing.Font("Segoe UI", 9)
+$cancelButton.Add_Click({ $form.Close() })
+$form.Controls.Add($cancelButton)
 
 $files = @(
   ${windowsFiles}
@@ -558,7 +608,7 @@ $form.ShowDialog()
  * - Tracks for cleanup
  */
 function createSecureTempScript(content: string, filename: string): string {
-  const tempDir = mkdtempSync(join(tmpdir(), 'lookbusy-'));
+  const tempDir = mkdtempSync(join(tmpdir(), 'ocupado-'));
   tempDirs.push(tempDir);
 
   const scriptPath = join(tempDir, filename);
@@ -676,6 +726,12 @@ export async function launchNativeWindow(): Promise<FeatureResult> {
     switch (platform) {
       case 'linux':
         childProcess = await launchLinuxWindow();
+        // Raise the window to the front after a short delay
+        if (hasWmctrl()) {
+          setTimeout(() => {
+            raiseWindow('Package Installation');
+          }, 1500);
+        }
         break;
       case 'darwin':
         childProcess = await launchMacWindow();

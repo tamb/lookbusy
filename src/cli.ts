@@ -8,13 +8,14 @@ import { createDefaultOptions, type LookbusyOptions, OPTION_DEFINITIONS } from '
 const program = new Command();
 
 program
-  .name('lookbusy')
+  .name('ocupado')
   .description(
     'Make your computer look busy with fake terminal commands, browser dashboards, and more',
   )
   .version('1.0.0')
   .option('--options', 'Show interactive options to select which features to enable')
-  .action(async (opts: { options?: boolean }) => {
+  .option('--grid', 'Use grid layout (browser left half, terminals stacked right)')
+  .action(async (opts: { options?: boolean; grid?: boolean }) => {
     let options: LookbusyOptions;
 
     if (opts.options) {
@@ -23,8 +24,20 @@ program
       options = createDefaultOptions();
     }
 
-    // Check if at least one option is enabled
-    const anyEnabled = Object.values(options).some(Boolean);
+    // Apply --grid flag if provided
+    if (opts.grid) {
+      options.gridLayout = true;
+    }
+
+    // Check if at least one feature option is enabled (excluding layout options)
+    const featureKeys: (keyof LookbusyOptions)[] = [
+      'terminalOutput',
+      'spawnTerminal',
+      'browserDashboard',
+      'nativeWindow',
+      'stayAwake',
+    ];
+    const anyEnabled = featureKeys.some((key) => options[key]);
     if (!anyEnabled) {
       console.log('No features selected. Exiting.');
       process.exit(0);
@@ -54,6 +67,7 @@ async function showOptionsPrompt(): Promise<LookbusyOptions> {
     browserDashboard: false,
     nativeWindow: false,
     stayAwake: false,
+    gridLayout: false,
   };
 
   for (const key of selected) {
