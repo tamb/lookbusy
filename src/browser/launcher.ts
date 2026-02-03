@@ -1,5 +1,5 @@
-import { createServer, type Server } from 'node:http';
 import { readFileSync } from 'node:fs';
+import { createServer, type Server } from 'node:http';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import open from 'open';
