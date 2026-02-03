@@ -1,0 +1,62 @@
+{
+  "name": "lookbusy",
+  "version": "1.0.0",
+  "description": "Make your computer look busy with fake terminal commands, browser dashboards, and installation windows",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "lookbusy": "./bin/lookbusy.js"
+  },
+  "scripts": {
+    "build": "tsup src/cli.ts src/index.ts src/spawned-terminal.ts --format esm --dts --clean",
+    "dev": "tsup src/cli.ts src/index.ts src/spawned-terminal.ts --format esm --dts --watch",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "lint": "biome lint ./src",
+    "lint:fix": "biome lint --write ./src",
+    "format": "biome format ./src",
+    "format:fix": "biome format --write ./src",
+    "check": "biome check ./src",
+    "check:fix": "biome check --write ./src",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run check && npm run typecheck && npm run build",
+    "postinstall": "npx playwright install chromium || true"
+  },
+  "keywords": [
+    "busy",
+    "fake",
+    "terminal",
+    "productivity",
+    "fun",
+    "cli"
+  ],
+  "author": "",
+  "license": "MIT",
+  "files": [
+    "dist",
+    "bin",
+    "src/browser/webapp",
+    "src/native",
+    "resources"
+  ],
+  "dependencies": {
+    "@inquirer/prompts": "^7.0.0",
+    "chalk": "^5.3.0",
+    "cli-progress": "^3.12.0",
+    "commander": "^12.1.0",
+    "ora": "^8.1.0",
+    "playwright": "^1.48.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.3.14",
+    "@types/cli-progress": "^3.11.6",
+    "@types/node": "^22.7.0",
+    "tsup": "^8.3.0",
+    "typescript": "^5.6.0",
+    "vitest": "^2.1.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
