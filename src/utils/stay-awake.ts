@@ -71,7 +71,7 @@ async function preventSleepLinux(): Promise<{ cleanup: CleanupFn }> {
   if (commandExists('gnome-session-inhibit')) {
     childProcess = spawn(
       'gnome-session-inhibit',
-      ['--inhibit', 'idle', '--reason', 'belazy is running', 'sleep', 'infinity'],
+      ['--inhibit', 'idle', '--reason', 'lookbusy is running', 'sleep', 'infinity'],
       {
         detached: true,
         stdio: 'ignore',

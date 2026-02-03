@@ -11,19 +11,19 @@ const cleanupFunctions: CleanupFn[] = [];
 let isShuttingDown = false;
 
 /**
- * Run belazy with the specified options
+ * Run lookbusy with the specified options
  */
 export async function run(options: LookbusyOptions): Promise<void> {
   // Security check: warn if running as root
   if (isRunningAsRoot()) {
     console.log(chalk.yellow('\n⚠️  Warning: Running as root is not recommended.'));
-    console.log(chalk.yellow('   belazy does not require elevated privileges.\n'));
+    console.log(chalk.yellow('   lookbusy does not require elevated privileges.\n'));
   }
 
   // Register cleanup handlers first
   registerCleanupHandlers();
 
-  console.log(chalk.bold.cyan('\n🚀 Starting belazy...\n'));
+  console.log(chalk.bold.cyan('\n🚀 Starting lookbusy...\n'));
 
   const features: FeatureResult[] = [];
 
@@ -75,7 +75,7 @@ export async function run(options: LookbusyOptions): Promise<void> {
     }
   } catch (error) {
     if (!isShuttingDown) {
-      console.error(chalk.red('Error running belazy:'), error);
+      console.error(chalk.red('Error running lookbusy:'), error);
       await shutdown();
       process.exit(1);
     }

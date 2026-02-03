@@ -558,7 +558,7 @@ $form.ShowDialog()
  * - Tracks for cleanup
  */
 function createSecureTempScript(content: string, filename: string): string {
-  const tempDir = mkdtempSync(join(tmpdir(), 'belazy-'));
+  const tempDir = mkdtempSync(join(tmpdir(), 'lookbusy-'));
   tempDirs.push(tempDir);
 
   const scriptPath = join(tempDir, filename);

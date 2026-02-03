@@ -1,4 +1,4 @@
-# belazy
+# lookbusy
 
 Make your computer look busy with fake terminal commands, browser dashboards, and installation windows.
 
@@ -14,10 +14,10 @@ Make your computer look busy with fake terminal commands, browser dashboards, an
 
 ## Quick Start
 
-The fastest way to run belazy is with npx (no installation required):
+The fastest way to run lookbusy is with npx (no installation required):
 
 ```bash
-npx belazy
+npx lookbusy
 ```
 
 ## Installation
@@ -25,25 +25,25 @@ npx belazy
 ### Global Installation (Recommended)
 
 ```bash
-npm install -g belazy
+npm install -g lookbusy
 ```
 
 Then run from anywhere:
 
 ```bash
-belazy
+lookbusy
 ```
 
 ### Local Installation
 
 ```bash
-npm install belazy
+npm install lookbusy
 ```
 
 Then run via npx or npm scripts:
 
 ```bash
-npx belazy
+npx lookbusy
 ```
 
 ## Usage
@@ -53,7 +53,7 @@ npx belazy
 Run with all features enabled (terminal output, browser, native window, spawned terminal, stay awake):
 
 ```bash
-belazy
+lookbusy
 ```
 
 ### Interactive Mode - Select Features
@@ -61,7 +61,7 @@ belazy
 Use the `--options` flag to interactively select which features to enable:
 
 ```bash
-belazy --options
+lookbusy --options
 ```
 
 This displays a checklist:
@@ -79,22 +79,22 @@ Use arrow keys to navigate, space to toggle, and enter to confirm.
 
 ### Stopping
 
-Press `Ctrl+C` to stop belazy. All spawned processes and windows will be cleaned up automatically.
+Press `Ctrl+C` to stop lookbusy. All spawned processes and windows will be cleaned up automatically.
 
 ## Examples
 
 ```bash
 # Run everything (default)
-belazy
+lookbusy
 
 # Select specific features interactively
-belazy --options
+lookbusy --options
 
 # Run via npx without installing
-npx belazy
+npx lookbusy
 
 # Run via npx with options
-npx belazy --options
+npx lookbusy --options
 ```
 
 ## Platform Requirements
@@ -162,8 +162,8 @@ We welcome contributions! See [CONTRIBUTING.md](./CONTRIBUTING.md) for guideline
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/belazy.git
-cd belazy
+git clone https://github.com/yourusername/lookbusy.git
+cd lookbusy
 
 # Install dependencies
 npm install

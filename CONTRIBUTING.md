@@ -1,6 +1,6 @@
-# Contributing to belazy
+# Contributing to lookbusy
 
-Thank you for your interest in contributing to belazy! This document provides guidelines and instructions for contributing.
+Thank you for your interest in contributing to lookbusy! This document provides guidelines and instructions for contributing.
 
 ## Table of Contents
 
@@ -23,12 +23,12 @@ Please be respectful and constructive in all interactions. We're all here to mak
 1. Fork the repository on GitHub
 2. Clone your fork locally:
    ```bash
-   git clone https://github.com/YOUR_USERNAME/belazy.git
-   cd belazy
+   git clone https://github.com/YOUR_USERNAME/lookbusy.git
+   cd lookbusy
    ```
 3. Add the upstream remote:
    ```bash
-   git remote add upstream https://github.com/ORIGINAL_OWNER/belazy.git
+   git remote add upstream https://github.com/ORIGINAL_OWNER/lookbusy.git
    ```
 
 ## Development Setup
@@ -68,9 +68,9 @@ npx playwright install chromium
 ## Project Structure
 
 ```
-belazy/
+lookbusy/
 ├── bin/
-│   └── belazy.js           # CLI entry point
+│   └── lookbusy.js           # CLI entry point
 ├── src/
 │   ├── cli.ts                # CLI argument parsing
 │   ├── index.ts              # Main orchestrator
@@ -191,16 +191,16 @@ Before submitting a PR, test your changes as if they were installed from npm.
 ### Method 1: npm link (Recommended)
 
 ```bash
-# In the belazy directory
+# In the lookbusy directory
 npm run build
 npm link
 
 # Now you can run it from anywhere
-belazy
-belazy --options
+lookbusy
+lookbusy --options
 
 # When done, unlink
-npm unlink -g belazy
+npm unlink -g lookbusy
 ```
 
 ### Method 2: npm pack
@@ -210,29 +210,29 @@ npm unlink -g belazy
 npm run build
 npm pack
 
-# This creates belazy-1.0.0.tgz
+# This creates lookbusy-1.0.0.tgz
 # Install it in another directory
 cd /tmp
-mkdir test-belazy
-cd test-belazy
+mkdir test-lookbusy
+cd test-lookbusy
 npm init -y
-npm install /path/to/belazy/belazy-1.0.0.tgz
+npm install /path/to/lookbusy/lookbusy-1.0.0.tgz
 
 # Run it
-npx belazy
+npx lookbusy
 ```
 
 ### Method 3: Local Install
 
 ```bash
 # In another directory
-mkdir /tmp/test-belazy
-cd /tmp/test-belazy
+mkdir /tmp/test-lookbusy
+cd /tmp/test-lookbusy
 npm init -y
-npm install /path/to/belazy
+npm install /path/to/lookbusy
 
 # Run it
-npx belazy
+npx lookbusy
 ```
 
 ### Testing Checklist
@@ -243,8 +243,8 @@ Before submitting, verify:
 - [ ] `npm run test:run` passes all tests
 - [ ] `npm run check` reports no linting or formatting issues
 - [ ] `npm run typecheck` reports no type errors
-- [ ] The CLI runs correctly: `npx belazy`
-- [ ] The options flag works: `npx belazy --options`
+- [ ] The CLI runs correctly: `npx lookbusy`
+- [ ] The options flag works: `npx lookbusy --options`
 - [ ] Ctrl+C cleanly exits and cleans up all processes
 - [ ] Each feature works individually (test via `--options`)
 

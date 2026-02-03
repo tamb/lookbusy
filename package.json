@@ -1,12 +1,12 @@
 {
-  "name": "belazy",
+  "name": "lookbusy",
   "version": "1.0.0",
   "description": "Make your computer look busy with fake terminal commands, browser dashboards, and installation windows",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
-    "belazy": "./bin/belazy.js"
+    "lookbusy": "./bin/lookbusy.js"
   },
   "scripts": {
     "build": "tsup src/cli.ts src/index.ts src/spawned-terminal.ts --format esm --dts --clean",
