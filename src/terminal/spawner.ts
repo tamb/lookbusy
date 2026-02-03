@@ -14,7 +14,8 @@ const __dirname = dirname(__filename);
 function getTerminalScript(): string {
   const nodePath = getNodePath();
   // Point to the spawned terminal script in the dist folder
-  const scriptPath = join(__dirname, '..', 'spawned-terminal.js');
+  // Note: tsup bundles everything flat into dist/, so spawned-terminal.js is in the same directory
+  const scriptPath = join(__dirname, 'spawned-terminal.js');
 
   // Escape paths for different platforms
   const platform = getPlatform();

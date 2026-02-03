@@ -209,43 +209,151 @@
 
   <script>
     const files = [
+      // Core dependencies
       'node_modules/@types/node/index.d.ts',
+      'node_modules/@types/node/fs.d.ts',
+      'node_modules/@types/node/path.d.ts',
+      'node_modules/@types/node/http.d.ts',
+      'node_modules/@types/react/index.d.ts',
+      'node_modules/@types/react-dom/index.d.ts',
       'node_modules/typescript/lib/typescript.js',
+      'node_modules/typescript/lib/tsserver.js',
+      'node_modules/typescript/lib/lib.es2022.d.ts',
+      // React ecosystem
       'node_modules/react/cjs/react.production.min.js',
+      'node_modules/react/cjs/react.development.js',
       'node_modules/react-dom/cjs/react-dom.production.min.js',
+      'node_modules/react-dom/cjs/react-dom-server.browser.production.min.js',
+      'node_modules/react-router-dom/dist/index.js',
+      'node_modules/react-query/build/index.js',
+      'node_modules/react-hook-form/dist/index.esm.js',
+      'node_modules/@tanstack/react-table/build/lib/index.js',
+      // Build tools
       'node_modules/webpack/lib/webpack.js',
+      'node_modules/webpack/lib/Compiler.js',
+      'node_modules/webpack/lib/Compilation.js',
+      'node_modules/webpack/lib/NormalModule.js',
+      'node_modules/webpack-dev-server/lib/Server.js',
+      'node_modules/esbuild/lib/main.js',
+      'node_modules/vite/dist/node/index.js',
+      'node_modules/rollup/dist/rollup.js',
+      'node_modules/terser/dist/bundle.min.js',
+      // Loaders and plugins
       'node_modules/babel-loader/lib/index.js',
+      'node_modules/@babel/core/lib/index.js',
+      'node_modules/@babel/preset-env/lib/index.js',
+      'node_modules/@babel/preset-react/lib/index.js',
+      'node_modules/@babel/preset-typescript/lib/index.js',
       'node_modules/css-loader/dist/index.js',
       'node_modules/style-loader/dist/index.js',
+      'node_modules/postcss-loader/dist/index.js',
+      'node_modules/sass-loader/dist/index.js',
       'node_modules/file-loader/dist/index.js',
       'node_modules/url-loader/dist/index.js',
       'node_modules/html-webpack-plugin/index.js',
       'node_modules/mini-css-extract-plugin/dist/index.js',
       'node_modules/terser-webpack-plugin/dist/index.js',
+      'node_modules/copy-webpack-plugin/dist/index.js',
+      // Testing
+      'node_modules/jest/build/jest.js',
+      'node_modules/@jest/core/build/index.js',
+      'node_modules/vitest/dist/index.js',
+      'node_modules/@testing-library/react/dist/index.js',
+      'node_modules/@testing-library/dom/dist/index.js',
+      'node_modules/cypress/lib/cypress.js',
+      'node_modules/playwright/lib/index.js',
+      // Linting
       'node_modules/eslint/lib/api.js',
+      'node_modules/eslint/lib/cli-engine/cli-engine.js',
+      'node_modules/@typescript-eslint/parser/dist/index.js',
+      'node_modules/@typescript-eslint/eslint-plugin/dist/index.js',
       'node_modules/prettier/index.js',
+      'node_modules/prettier/parser-typescript.js',
+      // UI libraries
+      'node_modules/@mui/material/index.js',
+      'node_modules/@mui/icons-material/index.js',
+      'node_modules/@emotion/react/dist/index.js',
+      'node_modules/@emotion/styled/dist/index.js',
+      'node_modules/tailwindcss/lib/index.js',
+      'node_modules/@headlessui/react/dist/index.js',
+      'node_modules/framer-motion/dist/index.js',
+      // State management
+      'node_modules/redux/dist/redux.js',
+      'node_modules/@reduxjs/toolkit/dist/index.js',
+      'node_modules/zustand/esm/index.js',
+      'node_modules/jotai/esm/index.js',
+      // Utilities
+      'node_modules/lodash/lodash.js',
+      'node_modules/axios/dist/axios.js',
+      'node_modules/date-fns/index.js',
+      'node_modules/uuid/dist/index.js',
+      'node_modules/zod/lib/index.js',
+      // Build outputs
       'dist/main.bundle.js',
       'dist/vendor.bundle.js',
       'dist/runtime.bundle.js',
+      'dist/main.bundle.js.map',
       'dist/styles.css',
+      'dist/styles.css.map',
       'dist/assets/logo.png',
       'dist/assets/icons/favicon.ico',
+      'dist/assets/fonts/inter-var.woff2',
+      // Source files
       'public/index.html',
-      'src/components/App.tsx',
+      'src/index.tsx',
+      'src/App.tsx',
       'src/components/Header.tsx',
       'src/components/Footer.tsx',
+      'src/components/Sidebar.tsx',
+      'src/components/Modal.tsx',
+      'src/components/Button.tsx',
+      'src/components/Input.tsx',
+      'src/components/Table.tsx',
+      'src/components/Card.tsx',
+      'src/pages/Dashboard.tsx',
+      'src/pages/Settings.tsx',
+      'src/pages/Profile.tsx',
       'src/utils/api.ts',
       'src/utils/helpers.ts',
+      'src/utils/constants.ts',
       'src/hooks/useAuth.ts',
       'src/hooks/useApi.ts',
+      'src/hooks/useLocalStorage.ts',
+      'src/store/index.ts',
+      'src/store/slices/userSlice.ts',
+      'src/types/index.ts',
+      'src/types/api.ts',
+      // Config files
       'config/webpack.config.js',
+      'config/webpack.dev.js',
       'config/webpack.prod.js',
       'config/jest.config.js',
+      'config/tailwind.config.js',
       '.env.production',
+      '.env.development',
       'package.json',
       'package-lock.json',
       'tsconfig.json',
+      'tsconfig.build.json',
+      '.eslintrc.json',
+      '.prettierrc',
       'README.md',
+      'CHANGELOG.md',
+    ];
+
+    const phases = [
+      { name: 'Resolving dependencies', status: 'Analyzing dependency tree...' },
+      { name: 'Downloading packages', status: 'Fetching from registry...' },
+      { name: 'Installing packages', status: 'Installing dependencies...' },
+      { name: 'Building native modules', status: 'Compiling native code...' },
+      { name: 'Linking dependencies', status: 'Creating symlinks...' },
+      { name: 'Running postinstall', status: 'Executing postinstall scripts...' },
+      { name: 'Compiling TypeScript', status: 'Type checking and compiling...' },
+      { name: 'Optimizing bundles', status: 'Tree shaking and minifying...' },
+      { name: 'Generating types', status: 'Creating type definitions...' },
+      { name: 'Running tests', status: 'Executing test suite...' },
+      { name: 'Building production', status: 'Creating optimized build...' },
+      { name: 'Finalizing', status: 'Cleaning up temporary files...' },
     ];
 
     const fileList = document.getElementById('fileList');
@@ -256,29 +364,57 @@
     const timeEl = document.getElementById('time');
 
     let currentIndex = 0;
+    let totalInstalled = 0;
+    let currentPhase = 0;
+    let cycleCount = 1;
     let startTime = Date.now();
 
     function updateTime() {
       const elapsed = Math.floor((Date.now() - startTime) / 1000);
       const mins = Math.floor(elapsed / 60);
       const secs = elapsed % 60;
-      timeEl.textContent = `Elapsed: ${mins}:${secs.toString().padStart(2, '0')}`;
+      timeEl.textContent = `Elapsed: ${mins}:${secs.toString().padStart(2, '0')} | Cycle: ${cycleCount}`;
+    }
+
+    function getRandomDelay() {
+      // Varied delays make it look more realistic (300-800ms)
+      return 300 + Math.random() * 500;
     }
 
     function installNext() {
       if (currentIndex >= files.length) {
-        // Loop back
+        // Start a new cycle
         fileList.innerHTML = '';
         currentIndex = 0;
+        currentPhase = 0;
+        cycleCount++;
+        
+        // Add a brief "Starting new cycle" message
+        const cycleMsg = document.createElement('div');
+        cycleMsg.className = 'file-item';
+        cycleMsg.innerHTML = `<span class="file-icon">🔄</span><span style="color: #667eea; font-weight: 500;">Starting installation cycle ${cycleCount}...</span>`;
+        fileList.appendChild(cycleMsg);
+        
+        setTimeout(() => {
+          if (fileList.firstChild === cycleMsg) {
+            fileList.removeChild(cycleMsg);
+          }
+        }, 2000);
       }
 
       const file = files[currentIndex];
       const progressPercent = Math.floor((currentIndex / files.length) * 100);
+      
+      // Update phase every ~10 files
+      const newPhase = Math.floor((currentIndex / files.length) * phases.length);
+      if (newPhase !== currentPhase && newPhase < phases.length) {
+        currentPhase = newPhase;
+      }
 
       progress.style.width = `${progressPercent}%`;
       percent.textContent = `${progressPercent}%`;
-      count.textContent = `${currentIndex} of ${files.length} packages`;
-      status.textContent = `Installing: ${file.split('/').pop()}`;
+      count.textContent = `${totalInstalled} packages installed`;
+      status.textContent = phases[currentPhase].status;
 
       // Add file to list
       const item = document.createElement('div');
@@ -290,25 +426,29 @@
       fileList.appendChild(item);
       fileList.scrollTop = fileList.scrollHeight;
 
-      // Mark as done after delay
+      // Mark as done after a varied delay
+      const completeDelay = 150 + Math.random() * 200;
       setTimeout(() => {
         item.className = 'file-item done';
         item.querySelector('.file-icon').innerHTML = '✓';
-      }, 200);
+      }, completeDelay);
 
       currentIndex++;
+      totalInstalled++;
       
       // Keep list manageable
-      while (fileList.children.length > 15) {
+      while (fileList.children.length > 12) {
         fileList.removeChild(fileList.firstChild);
       }
+
+      // Schedule next install with varied timing
+      setTimeout(installNext, getRandomDelay());
     }
 
     // Initial install
     installNext();
 
-    // Continue installing
-    setInterval(installNext, 400);
+    // Update time display
     setInterval(updateTime, 1000);
   </script>
 </body>
