@@ -8,7 +8,7 @@ import { createDefaultOptions, type LookbusyOptions, OPTION_DEFINITIONS } from '
 const program = new Command();
 
 program
-  .name('lookbusy')
+  .name('belazy')
   .description(
     'Make your computer look busy with fake terminal commands, browser dashboards, and more',
   )

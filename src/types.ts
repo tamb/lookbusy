@@ -1,5 +1,5 @@
 /**
- * Configuration options for lookbusy features
+ * Configuration options for belazy features
  */
 export interface LookbusyOptions {
   /** Enable fake terminal output with spinners and progress bars */

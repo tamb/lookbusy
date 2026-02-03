@@ -2,9 +2,9 @@
 
 ## Overview
 
-`lookbusy` is designed to be a safe, non-invasive entertainment tool. This document outlines the security measures in place and what the application does and does not do.
+`belazy` is designed to be a safe, non-invasive entertainment tool. This document outlines the security measures in place and what the application does and does not do.
 
-## What lookbusy Does
+## What belazy Does
 
 ### Terminal Output
 - Displays fake text output to the terminal
@@ -33,10 +33,10 @@
 
 ### Terminal Spawning
 - Spawns additional terminal windows
-- Only runs the bundled lookbusy script (no arbitrary code execution)
+- Only runs the bundled belazy script (no arbitrary code execution)
 - Terminal processes are tracked and terminated on exit
 
-## What lookbusy Does NOT Do
+## What belazy Does NOT Do
 
 - ❌ Access, read, or modify any user files
 - ❌ Make network requests or send data anywhere
