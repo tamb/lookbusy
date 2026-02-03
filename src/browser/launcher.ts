@@ -1,7 +1,8 @@
+import { createServer, type Server } from 'node:http';
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { type Browser, type BrowserContext, chromium, type Page } from 'playwright';
+import open from 'open';
 import type { CleanupFn, FeatureResult } from '../types.js';
 
 // Get the directory of this file
@@ -13,10 +14,13 @@ const __dirname = dirname(__filename);
  */
 export function getWebappPath(): string {
   // Try multiple locations for the webapp
+  // Note: tsup bundles everything flat into dist/, so __dirname is dist/
   const possiblePaths = [
+    // When running from dist/ (production) - webapp is in src/browser/webapp/
+    join(__dirname, '..', 'src', 'browser', 'webapp', 'index.html'),
+    // When running tests or from source
     join(__dirname, 'webapp', 'index.html'),
     join(__dirname, '..', 'browser', 'webapp', 'index.html'),
-    join(__dirname, '..', '..', 'src', 'browser', 'webapp', 'index.html'),
   ];
 
   for (const path of possiblePaths) {
@@ -26,7 +30,7 @@ export function getWebappPath(): string {
     } catch {}
   }
 
-  // Default to the first path
+  // Default to the first path (will show a helpful error)
   return possiblePaths[0];
 }
 
@@ -39,49 +43,66 @@ export function getWebappContent(): string {
 }
 
 /**
+ * Find an available port starting from the given port
+ */
+async function findAvailablePort(startPort: number): Promise<number> {
+  return new Promise((resolve) => {
+    const server = createServer();
+    server.listen(startPort, () => {
+      const address = server.address();
+      const port = typeof address === 'object' && address ? address.port : startPort;
+      server.close(() => resolve(port));
+    });
+    server.on('error', () => {
+      // Port in use, try next one
+      resolve(findAvailablePort(startPort + 1));
+    });
+  });
+}
+
+/**
  * Launch a browser with the fake dashboard
+ * Uses a local HTTP server and the system's default browser
  */
 export async function launchBrowser(): Promise<FeatureResult> {
-  let browser: Browser | null = null;
-  let context: BrowserContext | null = null;
-  let page: Page | null = null;
+  let server: Server | null = null;
+  let browserProcess: Awaited<ReturnType<typeof open>> | null = null;
 
   try {
-    // Launch browser in headed mode
-    browser = await chromium.launch({
-      headless: false,
-      args: [
-        '--start-maximized',
-        '--disable-infobars',
-        '--no-first-run',
-        '--no-default-browser-check',
-      ],
-    });
-
-    // Create a new context with viewport
-    context = await browser.newContext({
-      viewport: { width: 1280, height: 800 },
-      deviceScaleFactor: 1,
-    });
-
-    // Create a new page
-    page = await context.newPage();
-
-    // Load the webapp HTML
+    // Get the HTML content
     const htmlContent = getWebappContent();
-    await page.setContent(htmlContent, { waitUntil: 'domcontentloaded' });
 
-    // Set a nice title (runs in browser context where document is available)
-    await page.evaluate(() => {
-      const doc = (globalThis as { document?: { title: string } }).document;
-      if (doc) {
-        doc.title = 'DevOps Dashboard - Deployment in Progress';
-      }
+    // Find an available port
+    const port = await findAvailablePort(3847);
+
+    // Create a simple HTTP server to serve the dashboard
+    server = createServer((_req, res) => {
+      // Serve the HTML for any request
+      res.writeHead(200, {
+        'Content-Type': 'text/html; charset=utf-8',
+        'Cache-Control': 'no-cache',
+      });
+      res.end(htmlContent);
     });
+
+    // Start the server
+    await new Promise<void>((resolve, reject) => {
+      if (!server) {
+        reject(new Error('Server not initialized'));
+        return;
+      }
+      server.listen(port, '127.0.0.1', () => resolve());
+      server.on('error', reject);
+    });
+
+    const url = `http://127.0.0.1:${port}`;
+
+    // Open in the default browser
+    browserProcess = await open(url);
   } catch (error) {
     // Clean up on error
-    if (browser) {
-      await browser.close().catch(() => {});
+    if (server) {
+      server.close();
     }
 
     console.warn('Failed to launch browser:', error);
@@ -92,12 +113,18 @@ export async function launchBrowser(): Promise<FeatureResult> {
   }
 
   const cleanup: CleanupFn = async () => {
-    try {
-      if (browser) {
-        await browser.close();
+    // Close the HTTP server
+    if (server) {
+      server.close();
+    }
+
+    // Try to kill the browser process if we have a reference
+    if (browserProcess && 'kill' in browserProcess) {
+      try {
+        browserProcess.kill();
+      } catch {
+        // Browser may already be closed
       }
-    } catch {
-      // Browser may already be closed
     }
   };
 
@@ -108,14 +135,9 @@ export async function launchBrowser(): Promise<FeatureResult> {
 }
 
 /**
- * Check if Playwright browsers are installed
+ * Check if browser launching is available
+ * With the open package, this should always work
  */
 export async function areBrowsersInstalled(): Promise<boolean> {
-  try {
-    const browser = await chromium.launch({ headless: true });
-    await browser.close();
-    return true;
-  } catch {
-    return false;
-  }
+  return true;
 }

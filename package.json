@@ -20,8 +20,7 @@
     "check": "biome check ./src",
     "check:fix": "biome check --write ./src",
     "typecheck": "tsc --noEmit",
-    "prepublishOnly": "npm run check && npm run typecheck && npm run build",
-    "postinstall": "npx playwright install chromium || true"
+    "prepublishOnly": "npm run check && npm run typecheck && npm run build"
   },
   "keywords": [
     "busy",
@@ -45,8 +44,8 @@
     "chalk": "^5.3.0",
     "cli-progress": "^3.12.0",
     "commander": "^12.1.0",
-    "ora": "^8.1.0",
-    "playwright": "^1.48.0"
+    "open": "^10.1.0",
+    "ora": "^8.1.0"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.3.14",

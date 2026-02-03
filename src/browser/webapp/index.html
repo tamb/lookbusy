@@ -324,32 +324,32 @@
         <div style="color: #888; font-size: 14px;">Run #<span id="run-number">1847</span></div>
       </div>
       <div class="pipeline-stages" id="pipeline-stages">
-        <div class="stage">
-          <div class="stage-icon completed">✓</div>
-          <div class="stage-name">Build</div>
-          <div class="stage-time">2m 34s</div>
-        </div>
-        <div class="stage">
-          <div class="stage-icon completed">✓</div>
-          <div class="stage-name">Test</div>
-          <div class="stage-time">5m 12s</div>
-        </div>
-        <div class="stage">
-          <div class="stage-icon completed">✓</div>
-          <div class="stage-name">Security Scan</div>
-          <div class="stage-time">1m 45s</div>
-        </div>
-        <div class="stage">
-          <div class="stage-icon running">
+        <div class="stage" id="stage-build">
+          <div class="stage-icon running" id="icon-build">
             <div class="spinner"></div>
           </div>
-          <div class="stage-name">Deploy</div>
-          <div class="stage-time" id="deploy-time">0m 0s</div>
+          <div class="stage-name">Build</div>
+          <div class="stage-time" id="time-build">0m 0s</div>
         </div>
-        <div class="stage">
-          <div class="stage-icon pending">○</div>
+        <div class="stage" id="stage-test">
+          <div class="stage-icon pending" id="icon-test">○</div>
+          <div class="stage-name">Test</div>
+          <div class="stage-time" id="time-test">--</div>
+        </div>
+        <div class="stage" id="stage-security">
+          <div class="stage-icon pending" id="icon-security">○</div>
+          <div class="stage-name">Security Scan</div>
+          <div class="stage-time" id="time-security">--</div>
+        </div>
+        <div class="stage" id="stage-deploy">
+          <div class="stage-icon pending" id="icon-deploy">○</div>
+          <div class="stage-name">Deploy</div>
+          <div class="stage-time" id="time-deploy">--</div>
+        </div>
+        <div class="stage" id="stage-health">
+          <div class="stage-icon pending" id="icon-health">○</div>
           <div class="stage-name">Health Check</div>
-          <div class="stage-time">--</div>
+          <div class="stage-time" id="time-health">--</div>
         </div>
       </div>
     </div>
@@ -369,7 +369,7 @@
       <div class="card">
         <div class="card-header">
           <span class="card-title">Memory</span>
-          <span style="color: #ffc107">▲ 3%</span>
+          <span style="color: #ffc107" id="memory-change">▲ 3%</span>
         </div>
         <div class="card-value" id="memory-value">4.2 GB</div>
         <div class="progress-bar">
@@ -377,15 +377,15 @@
         </div>
         <div class="metrics-row">
           <div class="metric">
-            <div class="metric-value">8.0</div>
+            <div class="metric-value" id="memory-total">8.0</div>
             <div class="metric-label">Total GB</div>
           </div>
           <div class="metric">
-            <div class="metric-value">4.2</div>
+            <div class="metric-value" id="memory-used">4.2</div>
             <div class="metric-label">Used GB</div>
           </div>
           <div class="metric">
-            <div class="metric-value">3.8</div>
+            <div class="metric-value" id="memory-free">3.8</div>
             <div class="metric-label">Free GB</div>
           </div>
         </div>
@@ -438,41 +438,173 @@
   </div>
 
   <script>
-    // Log messages pool
-    const logMessages = [
-      { type: 'info', text: 'Pulling container image from registry...' },
-      { type: 'info', text: 'Image pull complete: sha256:a1b2c3d4e5f6' },
-      { type: 'success', text: 'Container started successfully' },
-      { type: 'info', text: 'Configuring environment variables...' },
-      { type: 'info', text: 'Mounting secrets from vault...' },
-      { type: 'success', text: 'Secrets mounted: 12 keys' },
-      { type: 'info', text: 'Running database migrations...' },
-      { type: 'success', text: 'Migration complete: 3 tables updated' },
-      { type: 'info', text: 'Starting health checks...' },
-      { type: 'success', text: 'Health check passed: /api/health' },
-      { type: 'info', text: 'Updating load balancer configuration...' },
-      { type: 'success', text: 'Traffic routing updated' },
-      { type: 'warning', text: 'High memory usage detected on pod-3' },
-      { type: 'info', text: 'Scaling replica set: 3 -> 4' },
-      { type: 'success', text: 'New replica ready' },
-      { type: 'info', text: 'Syncing configuration with ConfigMap...' },
-      { type: 'info', text: 'Invalidating CDN cache...' },
-      { type: 'success', text: 'CDN cache cleared: 847 objects' },
-      { type: 'info', text: 'Notifying monitoring services...' },
-      { type: 'success', text: 'Prometheus metrics endpoint configured' },
-      { type: 'info', text: 'Running post-deploy hooks...' },
-      { type: 'success', text: 'Slack notification sent' },
-      { type: 'info', text: 'Warming up cache layers...' },
-      { type: 'success', text: 'Redis cache warmed: 1.2M keys' },
-      { type: 'info', text: 'Verifying SSL certificates...' },
-      { type: 'success', text: 'SSL certificates valid: expires in 89 days' },
+    // Pipeline stages configuration (durations in seconds)
+    // Build: 2-3 mins, Test: 5-7 mins, Security: 1-2 mins, Deploy: 15 mins, Health: 1 min
+    const stages = [
+      { id: 'build', name: 'Build', minDuration: 120, maxDuration: 180 },
+      { id: 'test', name: 'Test', minDuration: 300, maxDuration: 420 },
+      { id: 'security', name: 'Security Scan', minDuration: 60, maxDuration: 120 },
+      { id: 'deploy', name: 'Deploy', minDuration: 900, maxDuration: 900 }, // Fixed 15 mins
+      { id: 'health', name: 'Health Check', minDuration: 60, maxDuration: 60 }, // Fixed 1 min
     ];
 
-    const logsContainer = document.getElementById('logs');
-    let logIndex = 0;
+    // Log messages for each stage
+    const stageLogs = {
+      build: [
+        { type: 'info', text: 'Cloning repository...' },
+        { type: 'success', text: 'Repository cloned: 847 files' },
+        { type: 'info', text: 'Installing dependencies...' },
+        { type: 'info', text: 'Running npm install...' },
+        { type: 'success', text: 'Dependencies installed: 1,247 packages' },
+        { type: 'info', text: 'Compiling TypeScript...' },
+        { type: 'info', text: 'Building production bundle...' },
+        { type: 'info', text: 'Optimizing assets...' },
+        { type: 'info', text: 'Generating source maps...' },
+        { type: 'success', text: 'Build artifacts created: 23 files' },
+        { type: 'info', text: 'Compressing build output...' },
+        { type: 'success', text: 'Build complete: 4.7 MB total' },
+      ],
+      test: [
+        { type: 'info', text: 'Starting test runner...' },
+        { type: 'info', text: 'Running unit tests...' },
+        { type: 'success', text: 'Unit tests passed: 247/247' },
+        { type: 'info', text: 'Running integration tests...' },
+        { type: 'success', text: 'Integration tests passed: 89/89' },
+        { type: 'info', text: 'Running e2e tests...' },
+        { type: 'info', text: 'Launching headless browser...' },
+        { type: 'success', text: 'E2E tests passed: 34/34' },
+        { type: 'info', text: 'Generating coverage report...' },
+        { type: 'success', text: 'Code coverage: 94.7%' },
+        { type: 'info', text: 'Running performance benchmarks...' },
+        { type: 'success', text: 'Performance within thresholds' },
+        { type: 'info', text: 'Validating API contracts...' },
+        { type: 'success', text: 'All API contracts valid' },
+      ],
+      security: [
+        { type: 'info', text: 'Starting security scan...' },
+        { type: 'info', text: 'Scanning dependencies for vulnerabilities...' },
+        { type: 'warning', text: 'Found 2 low severity issues (acceptable)' },
+        { type: 'info', text: 'Running SAST analysis...' },
+        { type: 'success', text: 'No critical vulnerabilities found' },
+        { type: 'info', text: 'Checking for secrets in code...' },
+        { type: 'success', text: 'No secrets detected' },
+        { type: 'info', text: 'Validating container image...' },
+        { type: 'success', text: 'Image signed and verified' },
+      ],
+      deploy: [
+        { type: 'info', text: 'Pulling container image from registry...' },
+        { type: 'info', text: 'Image pull complete: sha256:a1b2c3d4e5f6' },
+        { type: 'success', text: 'Container started successfully' },
+        { type: 'info', text: 'Configuring environment variables...' },
+        { type: 'info', text: 'Mounting secrets from vault...' },
+        { type: 'success', text: 'Secrets mounted: 12 keys' },
+        { type: 'info', text: 'Running database migrations...' },
+        { type: 'success', text: 'Migration complete: 3 tables updated' },
+        { type: 'info', text: 'Updating load balancer configuration...' },
+        { type: 'success', text: 'Traffic routing updated' },
+        { type: 'warning', text: 'High memory usage detected on pod-3' },
+        { type: 'info', text: 'Scaling replica set: 3 -> 4' },
+        { type: 'success', text: 'New replica ready' },
+        { type: 'info', text: 'Rolling out to 25% of traffic...' },
+        { type: 'success', text: 'Canary deployment healthy' },
+        { type: 'info', text: 'Rolling out to 50% of traffic...' },
+        { type: 'success', text: 'No errors detected' },
+        { type: 'info', text: 'Rolling out to 100% of traffic...' },
+        { type: 'success', text: 'Full rollout complete' },
+        { type: 'info', text: 'Syncing configuration with ConfigMap...' },
+        { type: 'info', text: 'Invalidating CDN cache...' },
+        { type: 'success', text: 'CDN cache cleared: 847 objects' },
+        { type: 'info', text: 'Notifying monitoring services...' },
+        { type: 'success', text: 'Prometheus metrics endpoint configured' },
+        { type: 'info', text: 'Warming up cache layers...' },
+        { type: 'success', text: 'Redis cache warmed: 1.2M keys' },
+      ],
+      health: [
+        { type: 'info', text: 'Starting health checks...' },
+        { type: 'info', text: 'Checking /api/health endpoint...' },
+        { type: 'success', text: 'Health check passed: /api/health' },
+        { type: 'info', text: 'Checking database connectivity...' },
+        { type: 'success', text: 'Database connection OK' },
+        { type: 'info', text: 'Checking Redis connectivity...' },
+        { type: 'success', text: 'Redis connection OK' },
+        { type: 'info', text: 'Verifying SSL certificates...' },
+        { type: 'success', text: 'SSL certificates valid: expires in 89 days' },
+        { type: 'success', text: 'All health checks passed!' },
+      ],
+      complete: [
+        { type: 'success', text: '🎉 Deployment completed successfully!' },
+        { type: 'info', text: 'Sending Slack notification...' },
+        { type: 'success', text: 'Team notified of successful deployment' },
+        { type: 'info', text: 'Updating deployment dashboard...' },
+        { type: 'success', text: 'All systems operational' },
+      ],
+      restart: [
+        { type: 'info', text: 'Preparing next deployment cycle...' },
+        { type: 'info', text: 'Fetching latest changes from main branch...' },
+        { type: 'success', text: 'New commits detected, starting pipeline...' },
+      ],
+    };
 
-    function addLog() {
-      const log = logMessages[logIndex % logMessages.length];
+    // Memory usage per stage (base values in GB, will fluctuate)
+    const stageMemory = {
+      build: { base: 5.2, variance: 0.8 },      // High during build
+      test: { base: 6.5, variance: 1.0 },       // Highest during tests
+      security: { base: 4.0, variance: 0.5 },   // Moderate
+      deploy: { base: 5.8, variance: 0.7 },     // High during deploy
+      health: { base: 3.5, variance: 0.3 },     // Lower during health check
+      idle: { base: 2.8, variance: 0.4 },       // Lowest when idle
+    };
+
+    const TOTAL_MEMORY = 8.0;
+
+    // State
+    let currentStageIndex = 0;
+    let stageStartTime = Date.now();
+    let stageDuration = 0;
+    let stageElapsed = 0;
+    let runNumber = 1847;
+    let logIndex = {};
+    let pipelineComplete = false;
+    let restartCountdown = 60; // 1 minute wait after completion
+
+    const logsContainer = document.getElementById('logs');
+    const statusBadge = document.querySelector('.status-badge');
+
+    // Initialize log indices
+    Object.keys(stageLogs).forEach(key => logIndex[key] = 0);
+
+    function getRandomDuration(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function formatTime(seconds) {
+      const mins = Math.floor(seconds / 60);
+      const secs = seconds % 60;
+      return `${mins}m ${secs}s`;
+    }
+
+    function setStageStatus(stageId, status) {
+      const icon = document.getElementById(`icon-${stageId}`);
+      icon.className = `stage-icon ${status}`;
+      
+      if (status === 'completed') {
+        icon.innerHTML = '✓';
+      } else if (status === 'running') {
+        icon.innerHTML = '<div class="spinner"></div>';
+      } else {
+        icon.innerHTML = '○';
+      }
+    }
+
+    function updateStageTime(stageId, time) {
+      document.getElementById(`time-${stageId}`).textContent = time;
+    }
+
+    function addLog(stageKey) {
+      const logs = stageLogs[stageKey];
+      if (!logs || logs.length === 0) return;
+      
+      const log = logs[logIndex[stageKey] % logs.length];
       const time = new Date().toLocaleTimeString('en-US', { hour12: false });
       
       const line = document.createElement('div');
@@ -485,7 +617,143 @@
       logsContainer.appendChild(line);
       logsContainer.scrollTop = logsContainer.scrollHeight;
       
-      logIndex++;
+      // Keep logs manageable
+      while (logsContainer.children.length > 50) {
+        logsContainer.removeChild(logsContainer.firstChild);
+      }
+      
+      logIndex[stageKey]++;
+    }
+
+    function startStage(index) {
+      if (index >= stages.length) {
+        // Pipeline complete
+        pipelineComplete = true;
+        restartCountdown = 60;
+        statusBadge.innerHTML = '<span style="color: #4caf50;">✓</span> Deployment Complete';
+        statusBadge.style.background = 'rgba(76, 175, 80, 0.2)';
+        statusBadge.style.color = '#4caf50';
+        
+        // Add completion logs
+        stageLogs.complete.forEach((log, i) => {
+          setTimeout(() => addLog('complete'), i * 1000);
+        });
+        return;
+      }
+
+      const stage = stages[index];
+      stageDuration = getRandomDuration(stage.minDuration, stage.maxDuration);
+      stageStartTime = Date.now();
+      stageElapsed = 0;
+      
+      // Update UI
+      setStageStatus(stage.id, 'running');
+      updateStageTime(stage.id, '0m 0s');
+      
+      // Reset status badge if restarting
+      if (index === 0) {
+        statusBadge.innerHTML = '<div class="spinner"></div> Deployment in Progress';
+        statusBadge.style.background = 'rgba(255, 193, 7, 0.2)';
+        statusBadge.style.color = '#ffc107';
+      }
+    }
+
+    function resetPipeline() {
+      // Increment run number
+      runNumber++;
+      document.getElementById('run-number').textContent = runNumber;
+      
+      // Reset all stages to pending
+      stages.forEach(stage => {
+        setStageStatus(stage.id, 'pending');
+        updateStageTime(stage.id, '--');
+      });
+      
+      // Clear logs
+      logsContainer.innerHTML = '';
+      
+      // Reset log indices
+      Object.keys(logIndex).forEach(key => logIndex[key] = 0);
+      
+      // Add restart logs
+      stageLogs.restart.forEach((log, i) => {
+        setTimeout(() => addLog('restart'), i * 800);
+      });
+      
+      // Start first stage after a brief delay
+      pipelineComplete = false;
+      currentStageIndex = 0;
+      setTimeout(() => startStage(0), 2500);
+    }
+
+    function updatePipeline() {
+      if (pipelineComplete) {
+        restartCountdown--;
+        if (restartCountdown <= 0) {
+          resetPipeline();
+        }
+        return;
+      }
+
+      if (currentStageIndex >= stages.length) return;
+
+      const stage = stages[currentStageIndex];
+      stageElapsed = Math.floor((Date.now() - stageStartTime) / 1000);
+      
+      // Update current stage time
+      updateStageTime(stage.id, formatTime(stageElapsed));
+      
+      // Check if stage is complete
+      if (stageElapsed >= stageDuration) {
+        setStageStatus(stage.id, 'completed');
+        updateStageTime(stage.id, formatTime(stageDuration));
+        currentStageIndex++;
+        startStage(currentStageIndex);
+      }
+    }
+
+    function getCurrentStageKey() {
+      if (pipelineComplete) return 'idle';
+      if (currentStageIndex >= stages.length) return 'idle';
+      return stages[currentStageIndex].id;
+    }
+
+    // Update memory based on current stage
+    function updateMemory() {
+      const stageKey = getCurrentStageKey();
+      const memConfig = stageMemory[stageKey] || stageMemory.idle;
+      
+      // Add some variance
+      const variance = (Math.random() - 0.5) * 2 * memConfig.variance;
+      const used = Math.max(1, Math.min(TOTAL_MEMORY - 0.5, memConfig.base + variance));
+      const free = TOTAL_MEMORY - used;
+      const percent = (used / TOTAL_MEMORY) * 100;
+      
+      document.getElementById('memory-value').textContent = `${used.toFixed(1)} GB`;
+      document.getElementById('memory-bar').style.width = `${percent}%`;
+      document.getElementById('memory-used').textContent = used.toFixed(1);
+      document.getElementById('memory-free').textContent = free.toFixed(1);
+      
+      // Update change indicator
+      const changeEl = document.getElementById('memory-change');
+      const changePercent = Math.floor(Math.random() * 8) + 1;
+      if (Math.random() > 0.3) {
+        changeEl.textContent = `▲ ${changePercent}%`;
+        changeEl.style.color = '#ffc107';
+      } else {
+        changeEl.textContent = `▼ ${changePercent}%`;
+        changeEl.style.color = '#4caf50';
+      }
+    }
+
+    // Add logs periodically based on current stage
+    function addStageLogs() {
+      if (pipelineComplete) return;
+      
+      const stageKey = getCurrentStageKey();
+      if (stageKey && stageLogs[stageKey]) {
+        addLog(stageKey);
+      }
     }
 
     // Initialize charts
@@ -503,71 +771,80 @@
       const container = document.getElementById(containerId);
       const bars = container.querySelectorAll('.chart-bar');
       
-      // Shift values left
       for (let i = 0; i < bars.length - 1; i++) {
         bars[i].style.height = bars[i + 1].style.height;
       }
       
-      // Add new random value
-      bars[bars.length - 1].style.height = `${Math.random() * 80 + 20}%`;
+      // Vary chart activity based on stage
+      const stageKey = getCurrentStageKey();
+      let minHeight = 20, maxHeight = 80;
+      
+      if (stageKey === 'test' || stageKey === 'build') {
+        minHeight = 40;
+        maxHeight = 95;
+      } else if (stageKey === 'idle') {
+        minHeight = 10;
+        maxHeight = 50;
+      }
+      
+      bars[bars.length - 1].style.height = `${Math.random() * (maxHeight - minHeight) + minHeight}%`;
     }
 
-    // Update metrics
-    function updateMetrics() {
-      // CPU
-      const cpu = Math.floor(Math.random() * 30 + 50);
+    // Update other metrics
+    function updateOtherMetrics() {
+      const stageKey = getCurrentStageKey();
+      
+      // CPU varies by stage
+      let cpuBase = 50, cpuRange = 30;
+      if (stageKey === 'build') { cpuBase = 70; cpuRange = 25; }
+      else if (stageKey === 'test') { cpuBase = 80; cpuRange = 15; }
+      else if (stageKey === 'deploy') { cpuBase = 60; cpuRange = 25; }
+      else if (stageKey === 'idle') { cpuBase = 25; cpuRange = 20; }
+      
+      const cpu = Math.floor(Math.random() * cpuRange + cpuBase);
       document.getElementById('cpu-value').textContent = `${cpu}%`;
       
-      // Memory
-      const memory = (Math.random() * 2 + 3).toFixed(1);
-      document.getElementById('memory-value').textContent = `${memory} GB`;
-      document.getElementById('memory-bar').style.width = `${(memory / 8) * 100}%`;
-      
       // Network
-      const network = Math.floor(Math.random() * 100 + 100);
+      let netBase = 100, netRange = 100;
+      if (stageKey === 'deploy') { netBase = 200; netRange = 150; }
+      else if (stageKey === 'idle') { netBase = 20; netRange = 30; }
+      
+      const network = Math.floor(Math.random() * netRange + netBase);
       document.getElementById('network-value').textContent = `${network} MB/s`;
       
       // Pods
-      const pods = Math.floor(Math.random() * 5 + 24);
-      const pending = Math.floor(Math.random() * 3 + 3);
+      let podsBase = 24, podsRange = 5, pendingBase = 3, pendingRange = 3;
+      if (stageKey === 'deploy') { podsBase = 20; pendingBase = 8; pendingRange = 4; }
+      else if (stageKey === 'health') { podsBase = 28; pendingBase = 2; pendingRange = 2; }
+      
+      const pods = Math.floor(Math.random() * podsRange + podsBase);
+      const pending = Math.floor(Math.random() * pendingRange + pendingBase);
       document.getElementById('pods-value').textContent = pods;
       document.getElementById('pods-running').textContent = pods;
       document.getElementById('pods-pending').textContent = pending;
       document.getElementById('pods-bar').style.width = `${(pods / 32) * 100}%`;
     }
 
-    // Update deploy time
-    let deploySeconds = 0;
-    function updateDeployTime() {
-      deploySeconds++;
-      const mins = Math.floor(deploySeconds / 60);
-      const secs = deploySeconds % 60;
-      document.getElementById('deploy-time').textContent = `${mins}m ${secs}s`;
-    }
-
     // Initialize
     initChart('cpu-chart');
     initChart('network-chart');
-
+    
+    // Start first stage
+    startStage(0);
+    
     // Add initial logs
-    for (let i = 0; i < 5; i++) {
-      addLog();
-    }
+    setTimeout(() => addLog('build'), 500);
+    setTimeout(() => addLog('build'), 1500);
 
     // Start intervals
-    setInterval(addLog, 2000);
+    setInterval(updatePipeline, 1000);
+    setInterval(addStageLogs, 2500);
+    setInterval(updateMemory, 2000);
+    setInterval(updateOtherMetrics, 3000);
     setInterval(() => {
       updateChart('cpu-chart');
       updateChart('network-chart');
     }, 1000);
-    setInterval(updateMetrics, 3000);
-    setInterval(updateDeployTime, 1000);
-
-    // Increment run number
-    setInterval(() => {
-      const runEl = document.getElementById('run-number');
-      runEl.textContent = parseInt(runEl.textContent) + 1;
-    }, 30000);
   </script>
 </body>
 </html>
